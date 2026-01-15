@@ -1,0 +1,26 @@
+# Node
+node_modules/
+
+# Environment & secrets
+.env
+
+# Reports & artifacts
+reports/
+test-results/
+playwright-report/
+blob-report/
+storage/
+playwright/.auth/
+playwright/.cache/
+
+# CI artifacts
+reports/traces/
+reports/videos/
+reports/allure-results/
+reports/allure-report/
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
