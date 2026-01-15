@@ -3,37 +3,31 @@
   "version": "1.0.0",
   "description": "Playwright + Cucumber automation framework with Docker and Jenkins CI",
   "type": "commonjs",
-
   "_moduleAliases": {
     "@pages": "src/pages",
     "@support": "src/support",
     "@steps": "src/steps"
   },
-
   "scripts": {
     "test": "cucumber-js",
     "test:smoke": "CUCUMBER_FILTER_TAGS=@smoke cucumber-js",
     "test:regression": "cucumber-js",
-
     "allure:convert": "npx allure-cucumberjs reports/cucumber/cucumber-results.json -o reports/allure-results",
     "allure:generate": "npm run allure:convert && allure generate reports/allure-results --clean -o reports/allure-report",
     "allure:open": "allure open reports/allure-report"
   },
-
   "dependencies": {
     "@cucumber/cucumber": "^12.5.0",
     "module-alias": "^2.2.3"
   },
-
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "dotenv": "^17.2.3",
-    "cucumber-html-reporter": "^7.2.0",
-
+    "@types/node": "20.19.29",
     "allure-commandline": "2.29.0",
-    "@types/node": "20.19.29"
+    "allure-cucumberjs": "^3.4.5",
+    "cucumber-html-reporter": "^7.2.0",
+    "dotenv": "^17.2.3"
   },
-
   "engines": {
     "node": ">=20"
   }
