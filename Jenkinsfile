@@ -10,7 +10,7 @@ pipeline {
   }
 
   triggers {
-    // 🌙 Nightly regression (main branch)
+    // 🌙 Nightly regression
     cron('H 1 * * *')
   }
 
@@ -36,7 +36,6 @@ pipeline {
     stage('Run Playwright Cucumber Tests') {
       steps {
         script {
-          // 🔹 Branch-aware tag logic
           def tags = ''
 
           if (env.BRANCH_NAME?.startsWith('PR-')) {
@@ -73,15 +72,8 @@ pipeline {
 
   post {
     always {
+      echo "📦 Archiving reports"
       archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
-
-      publishHTML([
-        reportDir: 'reports/cucumber',
-        reportFiles: 'cucumber-report.html',
-        reportName: 'Cucumber Automation Report',
-        keepAll: true,
-        alwaysLinkToLastBuild: true
-      ])
     }
   }
 }
