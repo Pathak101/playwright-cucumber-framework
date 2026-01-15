@@ -10,7 +10,7 @@ pipeline {
   }
 
   triggers {
-    // 🌙 Nightly regression
+    // 🌙 Nightly regression (main branch)
     cron('H 1 * * *')
   }
 
@@ -27,27 +27,13 @@ pipeline {
       }
     }
 
-    stage('Prepare Allure History') {
-      steps {
-        sh '''
-          mkdir -p reports/allure-results
-          if [ -d allure-history ]; then
-            echo "📊 Restoring Allure history"
-            cp -r allure-history/* reports/allure-results/ || true
-          else
-            echo "ℹ️ No previous Allure history found"
-          fi
-        '''
-      }
-    }
-
     stage('Docker Build') {
       steps {
         sh 'docker build -t pw-cucumber .'
       }
     }
 
-    stage('Run Playwright Tests') {
+    stage('Run Playwright Cucumber Tests') {
       steps {
         script {
           // 🔹 Branch-aware tag logic
@@ -73,18 +59,29 @@ pipeline {
         }
       }
     }
+
+    stage('Generate Cucumber HTML Report') {
+      steps {
+        sh """
+          docker run --rm \
+            -v "\$PWD/reports:/app/reports" \
+            pw-cucumber npm run report
+        """
+      }
+    }
   }
 
   post {
     always {
-      sh '''
-        mkdir -p allure-history
-        if [ -d reports/allure-results/history ]; then
-          cp -r reports/allure-results/history/* allure-history/ || true
-        fi
-      '''
-
       archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
+
+      publishHTML([
+        reportDir: 'reports/cucumber',
+        reportFiles: 'cucumber-report.html',
+        reportName: 'Cucumber Automation Report',
+        keepAll: true,
+        alwaysLinkToLastBuild: true
+      ])
     }
   }
 }

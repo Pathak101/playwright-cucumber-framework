@@ -9,13 +9,9 @@
     "@steps": "src/steps"
   },
   "scripts": {
-    "test": "cucumber-js",
-    "test:smoke": "CUCUMBER_FILTER_TAGS=@smoke cucumber-js",
-    "test:regression": "cucumber-js",
-    "allure:convert": "npx allure-cucumberjs reports/cucumber/cucumber-results.json -o reports/allure-results",
-    "allure:generate": "npm run allure:convert && allure generate reports/allure-results --clean -o reports/allure-report",
-    "allure:open": "allure open reports/allure-report"
-  },
+  "test": "cucumber-js",
+  "report": "node scripts/generate-report.js"
+},
   "dependencies": {
     "@cucumber/cucumber": "^12.5.0",
     "module-alias": "^2.2.3"
