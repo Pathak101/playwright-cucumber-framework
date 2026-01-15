@@ -88,7 +88,7 @@ The framework is designed to scale for enterprise applications and supports PR v
 ├── package.json
 └── README.md
 
-🧠 Key Design Decisions (Why This Framework Works)
+**🧠 Key Design Decisions (Why This Framework Works)**
 ✅ Why Playwright?
 
 Built-in auto-waiting
@@ -129,7 +129,7 @@ No data leakage
 
 Safe parallel execution
 
-🔐 Authentication Optimization (storageState)
+**🔐 Authentication Optimization (storageState)**
 Problem
 
 Logging in via UI before every scenario:
