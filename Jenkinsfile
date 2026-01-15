@@ -10,14 +10,13 @@ pipeline {
   }
 
   triggers {
-    // 🌙 Nightly full regression
+    // 🌙 Nightly regression
     cron('H 1 * * *')
   }
 
   environment {
     TEST_USER = credentials('test-user')
     TEST_PASS = credentials('test-pass')
-    ALLURE_HISTORY_DIR = 'allure-history'
   }
 
   stages {
@@ -30,17 +29,15 @@ pipeline {
 
     stage('Prepare Allure History') {
       steps {
-        script {
-          sh '''
-            mkdir -p reports/allure-results
-            if [ -d "${ALLURE_HISTORY_DIR}" ]; then
-              echo "📊 Restoring Allure history"
-              cp -r ${ALLURE_HISTORY_DIR}/* reports/allure-results/ || true
-            else
-              echo "ℹ️ No previous Allure history found"
-            fi
-          '''
-        }
+        sh '''
+          mkdir -p reports/allure-results
+          if [ -d allure-history ]; then
+            echo "📊 Restoring Allure history"
+            cp -r allure-history/* reports/allure-results/ || true
+          else
+            echo "ℹ️ No previous Allure history found"
+          fi
+        '''
       }
     }
 
@@ -53,19 +50,15 @@ pipeline {
     stage('Run Playwright Tests') {
       steps {
         script {
+          // 🔹 Branch-aware tag logic
+          def tags = ''
 
-          // ✅ Branch-aware tag selection
-          def cucumberTags = ''
-
-          // PR build → smoke only
-          if (env.CHANGE_ID) {
-            cucumberTags = '@smoke'
-            echo "🔍 PR detected → running SMOKE tests"
-          }
-          // Main / nightly → full regression
-          else {
-            cucumberTags = ''
-            echo "🚀 Main/Nightly build → running FULL regression"
+          if (env.BRANCH_NAME?.startsWith('PR-')) {
+            tags = '@smoke'
+          } else if (env.BRANCH_NAME == 'main' || env.BRANCH_NAME == 'master') {
+            tags = ''
+          } else {
+            tags = '@smoke'
           }
 
           sh """
@@ -73,8 +66,8 @@ pipeline {
               -e TEST_USER=${TEST_USER} \
               -e TEST_PASS=${TEST_PASS} \
               -e ENV=${params.ENV} \
-              -e CUCUMBER_FILTER_TAGS="${cucumberTags}" \
-              -v ${WORKSPACE}/reports:/app/reports \
+              -e CUCUMBER_FILTER_TAGS="${tags}" \
+              -v "\$PWD/reports:/app/reports" \
               pw-cucumber
           """
         }
@@ -84,25 +77,14 @@ pipeline {
 
   post {
     always {
-
-      // 📈 Persist Allure history for trends
       sh '''
-        mkdir -p ${ALLURE_HISTORY_DIR}
-        if [ -d "reports/allure-results/history" ]; then
-          cp -r reports/allure-results/history/* ${ALLURE_HISTORY_DIR}/ || true
+        mkdir -p allure-history
+        if [ -d reports/allure-results/history ]; then
+          cp -r reports/allure-results/history/* allure-history/ || true
         fi
       '''
 
-      // 📦 Archive debugging artifacts
-      archiveArtifacts artifacts: 'reports/traces/*.zip', allowEmptyArchive: true
-      archiveArtifacts artifacts: 'reports/allure-results/**', allowEmptyArchive: true
-
-      // 📊 Generate Allure report
-      allure([
-        includeProperties: false,
-        reportBuildPolicy: 'ALWAYS',
-        results: [[path: 'reports/allure-results']]
-      ])
+      archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
     }
   }
 }
